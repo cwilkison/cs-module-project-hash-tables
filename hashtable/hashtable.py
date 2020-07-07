@@ -50,7 +50,7 @@ class HashTable:
         Implement this.
         """
         # Your code here
-        return self.size / self.data
+        return self.size / self.capacity
 
 
     def fnv1(self, key):
@@ -110,7 +110,9 @@ class HashTable:
             curr.next = HashTableEntry(key, value)
             self.size += 1
 
-
+        if self.get_load_factor() > 0.7:
+            self.resize(self.capacity * 2 )
+        
 
     def delete(self, key):
         """
@@ -181,7 +183,15 @@ class HashTable:
         Implement this.
         """
         # Your code here
-
+        if self.get_load_factor() >= 0.7:
+            old_storage = self.storage
+            self.storage = [LinkedList()] * new_capacity
+            for item in old_storage:
+                current = item.head
+                while current:
+                    self.put(current.key, current.value)
+                    current = current.next
+            self.capacity = new_capacity
 
 
 if __name__ == "__main__":
