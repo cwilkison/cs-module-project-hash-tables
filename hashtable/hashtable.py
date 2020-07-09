@@ -11,6 +11,9 @@ class HashTableEntry:
 # Hash table can't have fewer than this many slots
 MIN_CAPACITY = 8
 
+class LinkedList:
+    def __init__(self):
+        self.head = None
 
 class HashTable:
     """
@@ -21,7 +24,9 @@ class HashTable:
     """
 
     def __init__(self, capacity):
-        # Your code here
+        self.capacity = capacity
+        self.data = [LinkedList()] * capacity
+        self.size = 0
 
 
     def get_num_slots(self):
@@ -35,6 +40,7 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        return self.data
 
 
     def get_load_factor(self):
@@ -44,6 +50,7 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        return self.size / self.capacity
 
 
     def fnv1(self, key):
@@ -62,13 +69,16 @@ class HashTable:
 
         Implement this, and/or FNV-1.
         """
-        # Your code here
+        hash = 5381
+        for x in key:
+            hash = (( hash << 5) + hash) + ord(x)
+        return hash & 0xFFFFFFFF
 
 
     def hash_index(self, key):
         """
         Take an arbitrary key and return a valid integer index
-        between within the storage capacity of the hash table.
+        between within the data capacity of the hash table.
         """
         #return self.fnv1(key) % self.capacity
         return self.djb2(key) % self.capacity
@@ -81,8 +91,31 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        # i = self.hash_index(key)
+        # self.data[i] = value
 
+        i = self.hash_index(key)
+
+        if self.data[i].head == None:
+            self.data[i].head = HashTableEntry(key, value)
+            self.size += 1
+            return
+
+        else:
+            curr = self.data[i].head
+            while curr.next:
+                if curr.key == key:
+                    curr.value = value
+                curr = curr.next
+            curr.next = HashTableEntry(key, value)
+            self.size += 1
+        
+        if self.get_load_factor() > 0.7:
+            self.resize(self.capacity * 2 )
+
+        
+
+        
 
     def delete(self, key):
         """
@@ -92,7 +125,29 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        # i = self.hash_index(key)
+        # if self.data[i] is None:
+        #     print("not found")
+        # else:
+        #     self.data[i] = None
+
+        i = self.hash_index(key)
+        curr = self.data[i].head
+
+        if curr.key == key:
+            self.data[i].head = self.data[i].head.next
+            self.size -= 1
+            return
+
+        while curr.next:
+            prev = curr
+            curr = curr.next
+            if curr.key == key:
+                prev.next = curr.next
+                self.size -= 1
+                return None
+
+
 
 
     def get(self, key):
@@ -103,7 +158,24 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+
+        # i = self.hash_index(key)
+
+        i = self.hash_index(key)
+        curr = self.data[i].head
+
+        if curr == None:
+            return None
+
+        if curr.key == key:
+            return curr.value
+
+        while curr.next:
+            curr = curr.next
+            if curr.key == key:
+                return curr.value
+        return None
+
 
 
     def resize(self, new_capacity):
@@ -114,8 +186,25 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        self.capacity = new_capacity
+        new_list = [LinkedList()] * new_capacity
 
+        for i in self.data:
+            curr = i.head
 
+            while curr is not None:
+                index = self.hash_index(curr.key)
+
+                if new_list[index].head == None:
+                    new_list[index].head = HashTableEntry(curr.key, curr.value)
+                else:
+                    node = HashTableEntry(curr.key, curr.value)
+
+                    node.next = new_list[index].head
+
+                    new_list[index].head = node
+                curr = curr.next
+        self.data = new_list
 
 if __name__ == "__main__":
     ht = HashTable(8)
