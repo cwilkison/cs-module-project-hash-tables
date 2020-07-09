@@ -109,9 +109,12 @@ class HashTable:
                 curr = curr.next
             curr.next = HashTableEntry(key, value)
             self.size += 1
-
+        
         if self.get_load_factor() > 0.7:
             self.resize(self.capacity * 2 )
+
+        
+
         
 
     def delete(self, key):
@@ -183,16 +186,25 @@ class HashTable:
         Implement this.
         """
         # Your code here
-        if self.get_load_factor() >= 0.7:
-            old_storage = self.storage
-            self.storage = [LinkedList()] * new_capacity
-            for item in old_storage:
-                current = item.head
-                while current:
-                    self.put(current.key, current.value)
-                    current = current.next
-            self.capacity = new_capacity
+        self.capacity = new_capacity
+        new_list = [LinkedList()] * new_capacity
 
+        for i in self.data:
+            curr = i.head
+
+            while curr is not None:
+                index = self.hash_index(curr.key)
+
+                if new_list[index].head == None:
+                    new_list[index].head = HashTableEntry(curr.key, curr.value)
+                else:
+                    node = HashTableEntry(curr.key, curr.value)
+
+                    node.next = new_list[index].head
+
+                    new_list[index].head = node
+                curr = curr.next
+        self.data = new_list
 
 if __name__ == "__main__":
     ht = HashTable(8)
